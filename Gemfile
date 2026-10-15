@@ -60,6 +60,8 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+  # WEBrick for Windows compatibility (Ruby 3.0+)
+  gem "webrick"
 end
 
 group :test do
