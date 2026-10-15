@@ -1,0 +1,81 @@
+<% content_for :title, "Register" %>
+
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Register New Account</h4>
+      </div>
+      <div class="card-body">
+        <%= form_with model: @user, url: register_path, class: 'needs-validation', novalidate: true do |form| %>
+          <% if @user.errors.any? %>
+            <div class="alert alert-danger" role="alert">
+              <h5 class="alert-heading">Please fix the following errors:</h5>
+              <ul class="mb-0">
+                <% @user.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <div class="mb-3">
+            <label for="user_full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+            <%= form.text_field :full_name, class: 'form-control', id: 'user_full_name', required: true, autocomplete: 'name', placeholder: 'Enter your full name' %>
+            <div class="invalid-feedback">Please enter your full name.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="user_email" class="form-label">Email <span class="text-danger">*</span></label>
+            <%= form.email_field :email, class: 'form-control', id: 'user_email', required: true, autocomplete: 'email', placeholder: 'Enter your email' %>
+            <div class="invalid-feedback">Please enter a valid email address.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="user_job_position" class="form-label">Job Position <span class="text-danger">*</span></label>
+            <%= form.text_field :job_position, class: 'form-control', id: 'user_job_position', required: true, autocomplete: 'organization-title', placeholder: 'Enter your job position' %>
+            <div class="invalid-feedback">Please enter your job position.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="user_password" class="form-label">Password <span class="text-danger">*</span></label>
+            <%= form.password_field :password, class: 'form-control', id: 'user_password', required: true, autocomplete: 'new-password', placeholder: 'Enter password (min 1 character)' %>
+            <div class="form-text">Any non-empty password is allowed (even one character).</div>
+            <div class="invalid-feedback">Please enter a password.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="user_password_confirmation" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+            <%= form.password_field :password_confirmation, class: 'form-control', id: 'user_password_confirmation', required: true, autocomplete: 'new-password', placeholder: 'Confirm your password' %>
+            <div class="invalid-feedback">Please confirm your password.</div>
+          </div>
+
+          <div class="d-grid">
+            <%= form.submit 'Register', class: 'btn btn-primary btn-lg' %>
+          </div>
+        <% end %>
+
+        <div class="text-center mt-3">
+          <p class="mb-0 text-muted">Already have an account? <%= link_to 'Login', login_path %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# Client-side validation for Bootstrap %>
+<script>
+  (function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+        form.classList.add('was-validated')
+      }, false)
+    })
+  })()
+</script>

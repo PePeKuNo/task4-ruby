@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "User Management System" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="User Management System">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+  </head>
+
+  <body class="d-flex flex-column min-vh-100 bg-light">
+    <%# Navigation Header - standard navigation with logout %>
+    <header class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
+      <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="<%= admin_path %>">User Management System</a>
+        <div class="navbar-nav ms-auto">
+          <% if logged_in? %>
+            <span class="nav-item nav-link text-light px-3">
+              <%= current_user.full_name %> (<%= current_user.email %>)
+            </span>
+            <%= link_to 'Logout', logout_path, method: :delete, class: 'nav-link btn btn-outline-light btn-sm ms-2', data: { turbo_method: :delete } %>
+          <% else %>
+            <%= link_to 'Login', login_path, class: 'nav-link btn btn-outline-light btn-sm me-2' %>
+            <%= link_to 'Register', register_path, class: 'nav-link btn btn-light btn-sm' %>
+          <% end %>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-fill container-fluid px-4">
+      <%# Flash messages for status notifications %>
+      <% flash.each do |type, message| %>
+        <div class="alert alert-<%= type == 'notice' ? 'success' : 'danger' %> alert-dismissible fade show mb-3" role="alert">
+          <%= message %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <% end %>
+
+      <%= yield %>
+    </main>
+
+    <%# Footer %>
+    <footer class="footer mt-auto py-3 bg-light border-top">
+      <div class="container-fluid text-center text-muted small">
+        &copy; <%= Time.current.year %> User Management System. All rights reserved.
+      </div>
+    </footer>
+  </body>
+</html>

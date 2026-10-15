@@ -1,0 +1,51 @@
+<% content_for :title, "Login" %>
+
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Login</h4>
+      </div>
+      <div class="card-body">
+        <%= form_with url: login_path, class: 'needs-validation', novalidate: true do |form| %>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <%= form.email_field :email, class: 'form-control', id: 'email', required: true, autocomplete: 'email', placeholder: 'Enter your email' %>
+            <div class="invalid-feedback">Please enter a valid email address.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <%= form.password_field :password, class: 'form-control', id: 'password', required: true, autocomplete: 'current-password', placeholder: 'Enter your password' %>
+            <div class="invalid-feedback">Please enter your password.</div>
+          </div>
+
+          <div class="d-grid">
+            <%= form.submit 'Login', class: 'btn btn-primary btn-lg' %>
+          </div>
+        <% end %>
+
+        <div class="text-center mt-3">
+          <p class="mb-0 text-muted">Don't have an account? <%= link_to 'Register', register_path %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# Client-side validation for Bootstrap %>
+<script>
+  (function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+        form.classList.add('was-validated')
+      }, false)
+    })
+  })()
+</script>

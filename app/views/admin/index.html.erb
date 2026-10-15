@@ -1,0 +1,101 @@
+<% content_for :title, "Admin Panel - User Management" %>
+
+<%# Toolbar - always visible, buttons change enabled/disabled status based on selection %>
+<div class="card shadow-sm mb-3" data-controller="user-table"
+     data-user-table-confirm-block-value="Are you sure you want to block the selected user(s)? They will not be able to login."
+     data-user-table-confirm-unblock-value="Are you sure you want to unblock the selected user(s)?"
+     data-user-table-confirm-delete-value="Are you sure you want to delete the selected user(s)? This action cannot be undone.">
+  <div class="card-header bg-white border-bottom">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <h5 class="mb-0 fw-bold">User Management</h5>
+      <div class="btn-toolbar" role="toolbar" aria-label="User management actions">
+        <%# Block button - text button %>
+        <%= button_tag 'Block', type: 'button', class: 'btn btn-warning btn-sm',
+            data: { user_table_target: 'btnBlock', action: 'user-table#block', disabled: true },
+            title: 'Block selected users (prevents login)' %>
+
+        <%# Unblock button - icon button %>
+        <%= button_tag class: 'btn btn-success btn-sm',
+            data: { user_table_target: 'btnUnblock', action: 'user-table#unblock', disabled: true },
+            title: 'Unblock selected users (allows login)' do %>
+          <i class="bi bi-person-check-fill" aria-hidden="true"></i>
+          <span class="visually-hidden">Unblock</span>
+        <% end %>
+
+        <%# Delete button - icon button %>
+        <%= button_tag class: 'btn btn-danger btn-sm',
+            data: { user_table_target: 'btnDelete', action: 'user-table#delete', disabled: true },
+            title: 'Delete selected users (permanent, cannot be undone)' do %>
+          <i class="bi bi-trash-fill" aria-hidden="true"></i>
+          <span class="visually-hidden">Delete</span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# User Management Table %>
+<div class="card shadow-sm" data-controller="user-table">
+  <div class="card-header bg-white border-bottom">
+    <h5 class="mb-0">Users (<%= @users.count %> total)</h5>
+  </div>
+  <div class="card-body p-0">
+    <%= form_with url: admin_bulk_action_path, method: :post, class: 'm-0',
+        data: { user_table_target: 'bulkActionForm' } do |form| %>
+      <div class="table-responsive">
+        <table class="table table-striped table-hover mb-0" id="users-table">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center" style="width: 40px;">
+                <%# Select All / Deselect All checkbox - no label %>
+                <%= check_box_tag 'select_all', '1', false,
+                    class: 'form-check-input',
+                    data: { user_table_target: 'selectAll', action: 'change->user-table#selectAll' },
+                    aria_label: 'Select all users' %>
+              </th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Job Position</th>
+              <th class="text-center" style="width: 180px;">Last Activity</th>
+              <th class="text-center" style="width: 100px;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @users.each do |user| %>
+              <tr data-user-id="<%= user.id %>" class="<%= 'table-danger' if user.blocked? %>">
+                <td class="text-center align-middle">
+                  <%# Selection checkbox for each row - no label %>
+                  <%= check_box_tag 'user_ids[]', user.id, false,
+                      class: 'form-check-input',
+                      data: { user_table_target: 'rowCheckbox', action: 'change->user-table#rowCheckboxChanged' },
+                      aria_label: "Select #{user.full_name}" %>
+                </td>
+                <td class="align-middle">
+                  <strong><%= user.full_name %></strong>
+                  <% if user.id == current_user.id %>
+                    <span class="badge bg-primary ms-1" title="Current user">You</span>
+                  <% end %>
+                </td>
+                <td class="align-middle"><%= user.email %></td>
+                <td class="align-middle text-muted"><%= user.job_position %></td>
+                <td class="align-middle text-center">
+                  <%= user.last_seen&.strftime('%Y-%m-%d %H:%M:%S UTC') || 'Never' %>
+                </td>
+                <td class="align-middle text-center">
+                  <% if user.active? %>
+                    <span class="badge bg-success">Active</span>
+                  else
+                    <span class="badge bg-danger">Blocked</span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <%# Hidden field for bulk action type %>
+      <%= hidden_field_tag :bulk_action, '', data: { user_table_target: 'bulkActionType' } %>
+    <% end %>
+  </div>
+</div>

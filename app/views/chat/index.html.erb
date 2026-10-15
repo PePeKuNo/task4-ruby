@@ -1,0 +1,71 @@
+<% content_for :title, "Chat" %>
+
+<div class="row">
+  <%# Chat Area - Main chat panel %>
+  <div class="col-lg-8">
+    <div class="card shadow-sm h-100 d-flex flex-column">
+      <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0 fw-bold">Chat Area</h5>
+      </div>
+      <div class="card-body flex-fill d-flex flex-column overflow-hidden">
+        <%# Messages container %>
+        <div class="flex-fill overflow-auto mb-3" id="chat-messages" style="max-height: 400px;">
+          <% if @chat_messages.any? %>
+            <% @chat_messages.each do |message| %>
+              <div class="mb-3 <%= 'text-end' if message.user_id == current_user.id %>">
+                <div class="d-inline-block max-w-75 p-3 rounded-3 <%= message.user_id == current_user.id ? 'bg-primary text-white' : 'bg-light' %>">
+                  <div class="small text-muted mb-1 <%= message.user_id == current_user.id ? 'text-white-50' : '' %>">
+                    <%= message.user.full_name %> • <%= message.created_at.strftime('%H:%M') %>
+                  </div>
+                  <div class="<%= message.user_id == current_user.id ? 'text-white' : 'text-dark' %>">
+                    <%= message.content %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-chat-dots display-1"></i>
+              <p class="mt-2">No messages yet. Start the conversation!</p>
+            </div>
+          <% end %>
+        </div>
+
+        <%# Message form %>
+        <div id="chat_form">
+          <%= render 'chat/form', chat_message: @chat_message %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# Online Users Sidebar %>
+  <div class="col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0 fw-bold">Online Users</h5>
+      </div>
+      <div class="card-body overflow-auto" style="max-height: 500px;">
+        <ul class="list-group list-group-flush">
+          <% User.active.ordered_by_last_seen.each do |user| %>
+            <li class="list-group-item d-flex align-items-center px-3 py-2">
+              <div class="flex-shrink-0">
+                <span class="badge rounded-pill <%= user.id == current_user.id ? 'bg-primary' : 'bg-success' %>">
+                  <%= user.id == current_user.id ? 'You' : 'Online' %>
+                </span>
+              </div>
+              <div class="flex-fill ms-3 text-truncate">
+                <div class="fw-medium"><%= user.full_name %></div>
+                <small class="text-muted"><%= user.job_position %></small>
+              </div>
+              <small class="text-muted"><%= user.last_seen&.strftime('%H:%M') || 'Never' %></small>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# Turbo Stream for real-time message updates %>
+<%= turbo_stream_from 'chat_messages' %>
