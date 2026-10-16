@@ -1,6 +1,8 @@
 class RegistrationsController < ApplicationController
-  # NOTE: Skip authentication for registration form (new) and registration action (create)
-  # These are already skipped in ApplicationController
+  # IMPORTANT: Skip authentication for registration form (new) and registration action (create)
+  # NOTA BENE: Must be HERE, not in ApplicationController, so Rails knows which :new/:create to skip
+  skip_before_action :require_login, only: [:new, :create], raise: false
+  skip_before_action :check_user_status, only: [:new, :create], raise: false
 
   # GET /register - Show registration form
   def new

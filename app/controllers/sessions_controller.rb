@@ -1,6 +1,8 @@
 class SessionsController < ApplicationController
-  # NOTE: Skip authentication for login form (new) and login action (create)
-  # These are already skipped in ApplicationController
+  # IMPORTANT: Skip authentication for login form (new) and login action (create)
+  # NOTA BENE: Must be HERE, not in ApplicationController, so Rails knows which :new/:create to skip
+  skip_before_action :require_login, only: [:new, :create], raise: false
+  skip_before_action :check_user_status, only: [:new, :create], raise: false
 
   # GET /login - Show login form
   def new

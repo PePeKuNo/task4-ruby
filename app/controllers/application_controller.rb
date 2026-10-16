@@ -5,10 +5,8 @@ class ApplicationController < ActionController::Base
   # IMPORTANT: Add session helper methods for current_user
   helper_method :current_user, :logged_in?
 
-  # NOTE: Skip authentication for registration and login pages
-  # NOTA BENE: These are the ONLY actions accessible without authentication
-  skip_before_action :require_login, only: [:new, :create], raise: false
-  skip_before_action :check_user_status, only: [:new, :create], raise: false
+  # NOTA BENE: Skip authentication is handled in CHILD controllers (SessionsController, RegistrationsController)
+  # DO NOT skip here - Rails won't know which controller's :new/:create to skip
 
   # IMPORTANT: Before each request (except registration/login), check if user exists and isn't blocked
   # If user account is blocked or deleted, redirect to login page
