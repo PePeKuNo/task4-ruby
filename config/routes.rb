@@ -18,6 +18,10 @@ Rails.application.routes.draw do
   get  '/chat',   to: 'chat#index', as: :chat
   post '/chat',   to: 'chat#create'
 
+  # AI routes (for parts 2 and 3)
+  post '/ai/chat', to: 'ai#chat'
+  post '/ai/tools', to: 'ai#tools'
+
   # Root path redirects to admin panel (or login if not authenticated)
   root to: redirect('/admin')
 end

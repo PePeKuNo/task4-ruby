@@ -3,6 +3,10 @@ class User < ApplicationRecord
   # It requires password_digest column and adds authenticate method
   has_secure_password
 
+  # IMPORTANT: Association for chat messages
+  # NOTA BENE: User has many chat messages (for chat feature Parts 2 & 3)
+  has_many :chat_messages, dependent: :destroy
+
   # IMPORTANT: Validations
   # Email must be present, unique (validated at model level too), and valid format
   # NOTA BENE: Database-level unique index is the ultimate guarantee (see migration)
