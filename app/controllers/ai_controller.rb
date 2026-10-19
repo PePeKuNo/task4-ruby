@@ -1,8 +1,8 @@
 class AiController < ApplicationController
-  # IMPORTANT: Skip authentication for AI endpoints (for testing)
-  # NOTA BENE: In production, you would want to protect these endpoints
-  skip_before_action :require_login, only: [:chat, :tools], raise: false
-  skip_before_action :check_user_status, only: [:chat, :tools], raise: false
+  # IMPORTANT: AI endpoints REQUIRE a logged-in, non-blocked user - the task says every
+  # request except register/login must verify the user exists and isn't blocked.
+  # NOTA BENE: Only CSRF verification is skipped, because the chat page calls these
+  # endpoints via fetch() without an authenticity token in the request body.
   skip_before_action :verify_authenticity_token, only: [:chat, :tools], raise: false
 
   # POST /ai/chat - Part 2: Answer questions about users

@@ -1,22 +1,25 @@
-<%= form_with model: chat_message, url: chat_path, class: 'd-flex gap-2', data: { turbo: true } do |form| %>
+<%= form_with model: chat_message, url: chat_path, class: 'd-flex gap-2 flex-wrap', data: { turbo: true } do |form| %>
+  <%# IMPORTANT: Validation errors are shown ABOVE the input, and the input is ALWAYS %>
+  <%# rendered. NOTA BENE: The old version showed errors INSTEAD of the input, so after %>
+  <%# an empty-message error the Turbo response left the user with no field to type in %>
+  <%# until a full page reload - chat became unusable after a single mistake. %>
   <% if chat_message.errors.any? %>
-    <div class="alert alert-danger d-flex align-items-center flex-fill" role="alert">
+    <div class="alert alert-danger d-flex align-items-center w-100 mb-2 py-2" role="alert">
       <ul class="mb-0">
         <% chat_message.errors.full_messages.each do |message| %>
           <li><%= message %></li>
         <% end %>
       </ul>
     </div>
-  <% else %>
-    <div class="flex-fill">
-      <%= form.text_field :content,
-          class: 'form-control',
-          placeholder: 'Type your message...',
-          maxlength: 1000,
-          required: true,
-          autocomplete: 'off',
-          aria_label: 'Chat message' %>
-    </div>
-    <%= form.submit 'Send', class: 'btn btn-primary', data: { disable_with: 'Sending...' } %>
   <% end %>
+  <div class="flex-fill">
+    <%= form.text_field :content,
+        class: 'form-control',
+        placeholder: 'Type your message...',
+        maxlength: 1000,
+        required: true,
+        autocomplete: 'off',
+        aria_label: 'Chat message' %>
+  </div>
+  <%= form.submit 'Send', class: 'btn btn-primary', data: { disable_with: 'Sending...' } %>
 <% end %>

@@ -40,7 +40,8 @@
     <main class="flex-fill container-fluid px-4">
       <%# Flash messages for status notifications %>
       <% flash.each do |type, message| %>
-        <div class="alert alert-<%= type == 'notice' ? 'success' : 'danger' %> alert-dismissible fade show mb-3" role="alert">
+        <%# NOTA BENE: No "fade" class here - the task forbids animations, so alerts appear instantly %>
+        <div class="alert alert-<%= type == 'notice' ? 'success' : 'danger' %> alert-dismissible show mb-3" role="alert">
           <%= message %>
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>

@@ -1,6 +1,6 @@
 class ApplicationController < ActionController::Base
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  # NOTA BENE: "allow_browser versions: :modern" was removed on purpose - it returns
+  # HTTP 406 for older browsers, and nothing in the task requires browser gating.
 
   # IMPORTANT: Add session helper methods for current_user
   helper_method :current_user, :logged_in?

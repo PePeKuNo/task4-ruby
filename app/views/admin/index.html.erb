@@ -17,13 +17,14 @@
       <h5 class="mb-0 fw-bold">User Management</h5>
       <div class="btn-toolbar" role="toolbar" aria-label="User management actions">
         <%# Block button - text button %>
+        <%# NOTE: data-bs-toggle="tooltip" shows a Bootstrap tooltip on hover (requirement) %>
         <%= button_tag 'Block', type: 'button', class: 'btn btn-warning btn-sm',
-            data: { user_table_target: 'btnBlock', action: 'user-table#block', disabled: true },
+            data: { user_table_target: 'btnBlock', action: 'user-table#block', disabled: true, bs_toggle: 'tooltip' },
             title: 'Block selected users (prevents login)' %>
 
         <%# Unblock button - icon button %>
         <%= button_tag class: 'btn btn-success btn-sm',
-            data: { user_table_target: 'btnUnblock', action: 'user-table#unblock', disabled: true },
+            data: { user_table_target: 'btnUnblock', action: 'user-table#unblock', disabled: true, bs_toggle: 'tooltip' },
             title: 'Unblock selected users (allows login)' do %>
           <i class="bi bi-person-check-fill" aria-hidden="true"></i>
           <span class="visually-hidden">Unblock</span>
@@ -31,7 +32,7 @@
 
         <%# Delete button - icon button %>
         <%= button_tag class: 'btn btn-danger btn-sm',
-            data: { user_table_target: 'btnDelete', action: 'user-table#delete', disabled: true },
+            data: { user_table_target: 'btnDelete', action: 'user-table#delete', disabled: true, bs_toggle: 'tooltip' },
             title: 'Delete selected users (permanent, cannot be undone)' do %>
           <i class="bi bi-trash-fill" aria-hidden="true"></i>
           <span class="visually-hidden">Delete</span>
@@ -80,7 +81,7 @@
                 <td class="align-middle">
                   <strong><%= user.full_name %></strong>
                   <% if user.id == current_user.id %>
-                    <span class="badge bg-primary ms-1" title="Current user">You</span>
+                    <span class="badge bg-primary ms-1" title="Current user" data-bs-toggle="tooltip">You</span>
                   <% end %>
                 </td>
                 <td class="align-middle"><%= user.email %></td>

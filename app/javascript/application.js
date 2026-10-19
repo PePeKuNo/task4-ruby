@@ -41,18 +41,10 @@ document.addEventListener('turbo:load', () => {
   });
 });
 
-// NOTE: Confirm dialogs for destructive actions (accessible)
-document.addEventListener('turbo:load', () => {
-  document.querySelectorAll('[data-confirm]').forEach(element => {
-    element.addEventListener('click', (e) => {
-      const message = element.dataset.confirm;
-      if (message && !confirm(message)) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    });
-  });
-});
+// NOTE: Confirm dialogs are handled by a Bootstrap modal inside the user-table
+// Stimulus controller (see user_table_controller.js and the modal in admin/index).
+// NOTA BENE: window.confirm() is a browser alert and the task forbids browser alerts,
+// so the old [data-confirm] + confirm() handler was removed completely.
 
 // NOTE: Keyboard accessibility for custom buttons
 document.addEventListener('keydown', (e) => {
