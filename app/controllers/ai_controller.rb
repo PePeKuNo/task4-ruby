@@ -38,9 +38,11 @@ class AiController < ApplicationController
     case tool
     when 'filter_users'
       users = User.all
-      users = users.where("email ILIKE ?", "%#{args[:email_like]}%") if args[:email_like].present?
+      # IMPORTANT: ILIKE is PostgreSQL-only syntax and production runs on SQLite,
+      # so LOWER(...) LIKE ... is used instead - it works on BOTH SQLite and PostgreSQL
+      users = users.where("LOWER(email) LIKE LOWER(?)", "%#{args[:email_like]}%") if args[:email_like].present?
       users = users.where(status: args[:status]) if args[:status].present?
-      users = users.where("full_name ILIKE ?", "%#{args[:name_like]}%") if args[:name_like].present?
+      users = users.where("LOWER(full_name) LIKE LOWER(?)", "%#{args[:name_like]}%") if args[:name_like].present?
       users = users.limit(args[:limit] || 50)
       render json: { users: users.as_json(only: [:id, :full_name, :email, :status, :job_position, :last_seen]) }
 

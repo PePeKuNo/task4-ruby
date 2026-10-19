@@ -26,6 +26,8 @@
             <span class="nav-item nav-link text-light px-3">
               <%= current_user.full_name %> (<%= current_user.email %>)
             </span>
+            <%# NOTE: Link to the chat area (Parts 2 and 3) %>
+            <%= link_to 'Chat', chat_path, class: 'nav-link btn btn-outline-light btn-sm ms-2' %>
             <%= button_to 'Logout', logout_path, method: :delete, class: 'btn btn-outline-light btn-sm ms-2' %>
           <% else %>
             <%= link_to 'Login', login_path, class: 'nav-link btn btn-outline-light btn-sm me-2' %>

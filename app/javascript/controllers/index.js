@@ -9,3 +9,6 @@ application.register("hello", HelloController)
 
 import UserTableController from "./user_table_controller"
 application.register("user-table", UserTableController)
+
+import AssistantController from "./assistant_controller"
+application.register("assistant", AssistantController)

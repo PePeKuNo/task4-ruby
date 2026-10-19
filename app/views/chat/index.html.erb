@@ -67,5 +67,57 @@
   </div>
 </div>
 
+<%# IMPORTANT: AI Assistant row - Parts 2 and 3 %>
+<%# NOTE: One Stimulus controller ("assistant") powers both cards below %>
+<%# NOTA BENE: Questions go to the real POST /ai/chat endpoint, tool calls to POST /ai/tools %>
+<div class="row mt-4" data-controller="assistant">
+  <div class="col-lg-8">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-robot me-2"></i>AI Assistant - ask about the database (Part 2)</h5>
+      </div>
+      <div class="card-body">
+        <div class="input-group mb-2">
+          <input type="text" class="form-control" data-assistant-target="question"
+                 placeholder="Example: How many users are there?" aria-label="Question for the AI">
+          <button class="btn btn-primary" type="button" data-action="assistant#ask">Ask AI</button>
+        </div>
+        <div class="mb-2">
+          <%# NOTE: Suggested questions - one click sends the question to the AI %>
+          <% ['How many users are there?', 'Show blocked users', 'Show active users'].each do |question| %>
+            <button type="button" class="btn btn-outline-secondary btn-sm me-1 mb-1"
+                    data-action="assistant#ask"
+                    data-assistant-question-value="<%= question %>"><%= question %></button>
+          <% end %>
+        </div>
+        <div class="border rounded p-3 bg-light min-height-3rem" data-assistant-target="answer">
+          <span class="text-muted">The AI answer will appear here. It is generated from real database queries.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-funnel me-2"></i>AI Tool: filter users (Part 3)</h5>
+      </div>
+      <div class="card-body">
+        <div class="input-group mb-2">
+          <select class="form-select" data-assistant-target="statusFilter" aria-label="Status filter for the AI tool">
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="blocked">Blocked</option>
+          </select>
+          <button class="btn btn-primary" type="button" data-action="assistant#filter">Run tool</button>
+        </div>
+        <div data-assistant-target="filterResult">
+          <span class="text-muted small">The AI tool result will appear here (first 10 rows).</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <%# Turbo Stream for real-time message updates %>
 <%= turbo_stream_from 'chat_messages' %>
