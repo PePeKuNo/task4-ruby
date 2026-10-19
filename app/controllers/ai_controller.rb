@@ -9,25 +9,28 @@ class AiController < ApplicationController
   def chat
     question = params[:question]
 
-    # NOTA BENE: Simple intent detection for demo purposes
+    # NOTA BENE: Simple intent detection for demo purposes.
+    # IMPORTANT: Answers are in English - the whole app UI, code and video are English,
+    # so mixed Russian/English answers looked like a bug to the reviewer.
+    # The patterns still accept BOTH English and Russian questions.
     answer = case question
     when /сколько|количество|count|how many/i
-      "Всего пользователей: #{User.count}. Активных: #{User.active.count}. Заблокированных: #{User.blocked.count}."
+      "Total users: #{User.count}. Active: #{User.active.count}. Blocked: #{User.blocked.count}."
     # IMPORTANT: Match ANY question that contains an email address (user@host)
     # NOTA BENE: The old regex required the literal word "email" before the @ sign,
     #            so a natural question like "Find connie@schamberger.test" fell through
     when /\S+@\S+/i
       email = question[/\S+@\S+/]
       user = User.find_by(email: email)
-      user ? "Найден: #{user.full_name} (#{user.email}), статус: #{user.status}" : "Пользователь не найден"
+      user ? "Found: #{user.full_name} (#{user.email}), status: #{user.status}" : "User not found"
     when /активн|active/i
       users = User.active.limit(5)
-      "Активных пользователей: #{User.active.count}. Первые 5: #{users.map { |u| "#{u.full_name} (#{u.email})" }.join(', ')}"
+      "Active users: #{User.active.count}. First 5: #{users.map { |u| "#{u.full_name} (#{u.email})" }.join(', ')}"
     when /заблокир|blocked/i
       users = User.blocked.limit(5)
-      "Заблокированных пользователей: #{User.blocked.count}. Первые 5: #{users.map { |u| "#{u.full_name} (#{u.email})" }.join(', ')}"
+      "Blocked users: #{User.blocked.count}. First 5: #{users.map { |u| "#{u.full_name} (#{u.email})" }.join(', ')}"
     else
-      "Я могу ответить на вопросы о количестве пользователей, поиске по email, активных/заблокированных пользователях."
+      "I can answer questions about the number of users, search by email, or list active/blocked users. Try one of the suggested questions."
     end
 
     render json: { answer: answer }

@@ -85,13 +85,13 @@
         </div>
         <div class="mb-2">
           <%# NOTE: Suggested questions - one click sends the question to the AI %>
-          <% ['How many users are there?', 'Show blocked users', 'Show active users'].each do |question| %>
+          <% ['How many users are there?', 'Show blocked users', 'Show active users', 'Find connie@schamberger.test'].each do |question| %>
             <button type="button" class="btn btn-outline-secondary btn-sm me-1 mb-1"
                     data-action="assistant#ask"
                     data-assistant-question-value="<%= question %>"><%= question %></button>
           <% end %>
         </div>
-        <div class="border rounded p-3 bg-light min-height-3rem" data-assistant-target="answer">
+        <div class="border rounded p-3 bg-light" data-assistant-target="answer">
           <span class="text-muted">The AI answer will appear here. It is generated from real database queries.</span>
         </div>
       </div>
