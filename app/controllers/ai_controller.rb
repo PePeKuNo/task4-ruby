@@ -13,7 +13,10 @@ class AiController < ApplicationController
     answer = case question
     when /сколько|количество|count|how many/i
       "Всего пользователей: #{User.count}. Активных: #{User.active.count}. Заблокированных: #{User.blocked.count}."
-    when /email.*@/i
+    # IMPORTANT: Match ANY question that contains an email address (user@host)
+    # NOTA BENE: The old regex required the literal word "email" before the @ sign,
+    #            so a natural question like "Find connie@schamberger.test" fell through
+    when /\S+@\S+/i
       email = question[/\S+@\S+/]
       user = User.find_by(email: email)
       user ? "Найден: #{user.full_name} (#{user.email}), статус: #{user.status}" : "Пользователь не найден"
