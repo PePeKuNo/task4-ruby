@@ -9,11 +9,20 @@ export default class extends Controller {
 
   // IMPORTANT: Part 2 - ask a factual question, the answer comes from the real database
   async ask(event) {
-    // NOTE: Suggested question chips pass their text via data-assistant-question-value
-    const quick = event.params ? event.params.question : undefined
+    // NOTE: Suggested question chips pass their text via data-assistant-question-value.
+    // IMPORTANT: The Stimulus event.params cache can be EMPTY on the very first action
+    // right after page load, which made the first chip click silently do nothing.
+    // NOTA BENE: So the attribute is also read directly from the clicked element as a
+    // reliable fallback - a click must NEVER result in "nothing happened".
+    const chip = event && event.target ? event.target : null
+    const quick = (event && event.params && event.params.question) ||
+      (chip && chip.getAttribute ? chip.getAttribute('data-assistant-question-value') : null)
     const question = quick || this.questionTarget.value.trim()
 
-    if (!question) return
+    if (!question) {
+      this.answerTarget.textContent = 'Type a question first, or pick one of the suggested questions.'
+      return
+    }
     this.questionTarget.value = question
 
     this.answerTarget.innerHTML = '<span class="text-muted">Asking the AI...</span>'
