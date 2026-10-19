@@ -21,7 +21,8 @@ class ChatController < ApplicationController
     else
       @chat_messages = ChatMessage.includes(:user).chronological.limit(100)
       respond_to do |format|
-        format.turbo_stream { render turbo_stream: turbo_stream.replace('chat_form', partial: 'chat/form', locals: { chat_message: @chat_message }) }
+        # IMPORTANT: status 422 tells Turbo this is an error response (Rails convention)
+        format.turbo_stream { render turbo_stream: turbo_stream.replace('chat_form', partial: 'chat/form', locals: { chat_message: @chat_message }), status: :unprocessable_entity }
         format.html { render :index, status: :unprocessable_entity }
       end
     end

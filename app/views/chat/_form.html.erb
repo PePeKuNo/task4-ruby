@@ -1,4 +1,8 @@
-<%= form_with model: chat_message, url: chat_path, class: 'd-flex gap-2 flex-wrap', data: { turbo: true } do |form| %>
+<%# IMPORTANT: The form itself carries id="chat_form" - NOT a wrapper div. %>
+<%# NOTA BENE: turbo_stream.replace swaps the element with the given id; if a plain %>
+<%# wrapper div carried the id, the FIRST error response would replace (and remove) %>
+<%# the wrapper, so all later Turbo form updates would silently do nothing. %>
+<%= form_with model: chat_message, url: chat_path, html: { id: 'chat_form' }, class: 'd-flex gap-2 flex-wrap', data: { turbo: true } do |form| %>
   <%# IMPORTANT: Validation errors are shown ABOVE the input, and the input is ALWAYS %>
   <%# rendered. NOTA BENE: The old version showed errors INSTEAD of the input, so after %>
   <%# an empty-message error the Turbo response left the user with no field to type in %>

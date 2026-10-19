@@ -31,8 +31,8 @@
           <% end %>
         </div>
 
-        <%# Message form %>
-        <div id="chat_form">
+        <%# Message form - the form element itself has id="chat_form" (see chat/_form) %>
+        <div class="mt-2">
           <%= render 'chat/form', chat_message: @chat_message %>
         </div>
       </div>
