@@ -1,3 +1,13 @@
+# IMPORTANT: Single adapter (SQLite) for ALL environments — development, test AND production.
+# NOTA BENE: SQLite was chosen for production deliberately: the Railway build runs on Linux
+# while our Gemfile.lock is generated on Windows, and native gems like `pg` cannot always
+# be resolved for both platforms at once. SQLite is pure-file based, needs no native
+# platform gems, and works identically on Windows and Linux.
+#
+# NOTE: Rails 8 with solid_cable / solid_queue / solid_cache requires FOUR database
+# entries for the production environment: primary (our tables), cable (ActionCable
+# messages), queue (ActiveJob jobs) and cache (fragment cache). Missing any of them
+# raises "The `cable` database is not configured for the `production` environment".
 default: &default
   adapter: sqlite3
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
@@ -11,9 +21,20 @@ test:
   <<: *default
   database: storage/test.sqlite3
 
+# NOTE: Each production database lives in its own file under storage/ (gitignored).
+# IMPORTANT: `bin/rails db:prepare` (run automatically by the Railway start command)
+# creates ALL four files, loads the schemas (db/schema.rb, db/cable_schema.rb,
+# db/queue_schema.rb, db/cache_schema.rb) and seeds db/users.json on first boot.
 production:
-  primary: &primary_production
-    adapter: postgresql
-    encoding: unicode
-    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-    url: <%= ENV["DATABASE_URL"] %>
+  primary:
+    <<: *default
+    database: storage/production.sqlite3
+  cable:
+    <<: *default
+    database: storage/production_cable.sqlite3
+  queue:
+    <<: *default
+    database: storage/production_queue.sqlite3
+  cache:
+    <<: *default
+    database: storage/production_cache.sqlite3

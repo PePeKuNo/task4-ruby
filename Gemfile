@@ -2,8 +2,12 @@ source "https://rubygems.org"
 
 gem "rails", "~> 8.1.4"
 gem "propshaft"
+# IMPORTANT: SQLite is used for ALL environments (development, test AND production).
+# NOTA BENE: The `pg` gem was removed — it broke the Railway build because our
+# Gemfile.lock is generated on Windows (x64-mingw-ucrt) and Bundler could not find
+# a pg variant valid for both Windows and Linux platforms. SQLite needs no native
+# platform-specific gems, so the build is now deterministic on any OS.
 gem "sqlite3", "~> 2.1"
-gem "pg", "~> 1.1"
 gem "puma", ">= 5.0"
 gem "jsbundling-rails"
 gem "turbo-rails"
