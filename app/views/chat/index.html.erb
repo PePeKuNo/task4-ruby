@@ -24,7 +24,8 @@
               </div>
             <% end %>
           <% else %>
-            <div class="text-center text-muted py-4">
+            <%# NOTE: id allows the Turbo stream to remove this placeholder on first message %>
+            <div class="text-center text-muted py-4" id="chat-empty-state">
               <i class="bi bi-chat-dots display-1"></i>
               <p class="mt-2">No messages yet. Start the conversation!</p>
             </div>

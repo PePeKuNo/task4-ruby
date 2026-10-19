@@ -1,4 +1,7 @@
 <%# Turbo Stream response for successful message creation %>
+<%# NOTE: Remove the "No messages yet" placeholder if this is the first message %>
+<%= turbo_stream.remove 'chat-empty-state' %>
+
 <%= turbo_stream.prepend 'chat-messages' do %>
   <div class="mb-3 text-end">
     <div class="d-inline-block max-w-75 p-3 rounded-3 bg-primary text-white">
