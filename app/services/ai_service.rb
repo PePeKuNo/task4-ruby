@@ -19,13 +19,17 @@ require 'json'
 #   AI_BASE_URL - default https://api.openai.com/v1
 #                 Groq   -> https://api.groq.com/openai/v1
 #                 Google -> https://generativelanguage.googleapis.com/v1beta/openai
-#   AI_MODEL    - default gpt-4o-mini
-#                 Groq   -> llama-3.3-70b-versatile
-#                 Google -> gemini-2.0-flash
+#   AI_MODEL    - default gpt-4o-mini. May be a comma-separated FALLBACK LIST:
+#                 e.g. gemini-3.5-flash,gemini-3.6-flash (free tiers spike 503 at peak)
 class AiService
   # NOTE: How many tool-calling rounds we allow before giving up (question -> tool ->
   # answer, occasionally one more round for a follow-up tool call).
   MAX_TOOL_ROUNDS = 4
+
+  # IMPORTANT: Free provider tiers often answer 429/503 "high demand" - those errors are
+  # temporary, so every HTTP call is retried once after a short pause before giving up.
+  RETRY_STATUS = %w[429 503 502].freeze
+  RETRY_DELAY = 2
 
   # NOTE: Networking timeouts - fail fast, the chat must stay responsive.
   OPEN_TIMEOUT = 8
@@ -103,6 +107,30 @@ class AiService
     # IMPORTANT: Without a key there is no AI call at all (see controller fallback).
     return nil if ENV['AI_API_KEY'].blank?
 
+    # IMPORTANT: AI_MODEL may contain a comma-separated FALLBACK LIST (e.g. free Gemini
+    # tiers spike 503 "high demand" at peak hours) - we try each model in order.
+    models.each do |model|
+      answer = ask_model(model)
+      return answer if answer
+    end
+
+    nil
+  rescue StandardError => e
+    Rails.logger.warn("AiService failed: #{e.class}: #{e.message}")
+    nil
+  end
+
+  private
+
+  # NOTE: Model list, first one that answers wins.
+  def models
+    ENV.fetch('AI_MODEL', 'gpt-4o-mini').split(',').map(&:strip).reject(&:empty?)
+  end
+
+  # NOTE: One full question -> tool calls -> answer conversation against ONE model.
+  def ask_model(model)
+    @model = model
+
     messages = [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: @question }
@@ -133,16 +161,32 @@ class AiService
     end
 
     nil
-  rescue StandardError => e
-    Rails.logger.warn("AiService failed: #{e.class}: #{e.message}")
-    nil
   end
-
-  private
 
   # NOTE: One HTTP round-trip to the chat completions endpoint. Returns parsed JSON
   # or nil on any problem (network, auth, rate limit, bad payload...).
+  # NOTA BENE: 429/502/503 are temporary (free tiers are heavily loaded) - retried once.
   def request(messages)
+    response = post_chat(messages)
+    if response && RETRY_STATUS.include?(response.code.to_s)
+      Rails.logger.warn("AI provider returned HTTP #{response.code}, retrying in #{RETRY_DELAY}s")
+      sleep(RETRY_DELAY)
+      response = post_chat(messages)
+    end
+
+    unless response&.is_a?(Net::HTTPSuccess)
+      Rails.logger.warn("AI provider failed: HTTP #{response&.code}: #{response&.body.to_s[0, 300]}")
+      return nil
+    end
+
+    JSON.parse(response.body)
+  rescue StandardError => e
+    Rails.logger.warn("AI request failed: #{e.class}: #{e.message}")
+    nil
+  end
+
+  # NOTE: Builds and sends a single POST /chat/completions request.
+  def post_chat(messages)
     base = ENV.fetch('AI_BASE_URL', 'https://api.openai.com/v1').chomp('/')
     uri = URI("#{base}/chat/completions")
 
@@ -155,19 +199,13 @@ class AiService
     req['Content-Type'] = 'application/json'
     req['Authorization'] = "Bearer #{ENV['AI_API_KEY']}"
     req.body = JSON.generate(
-      model: ENV.fetch('AI_MODEL', 'gpt-4o-mini'),
+      model: @model,
       messages: messages,
       tools: TOOLS,
       temperature: 0
     )
 
-    res = http.request(req)
-    unless res.is_a?(Net::HTTPSuccess)
-      Rails.logger.warn("AI provider returned HTTP #{res.code}: #{res.body.to_s[0, 300]}")
-      return nil
-    end
-
-    JSON.parse(res.body)
+    http.request(req)
   rescue StandardError => e
     Rails.logger.warn("AI request failed: #{e.class}: #{e.message}")
     nil

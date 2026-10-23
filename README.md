@@ -47,7 +47,7 @@ The AI is a **real LLM integration** (see `app/services/ai_service.rb`):
 |---|---|---|---|
 | `AI_API_KEY` | yes (for AI) | — | Secret key of any OpenAI-compatible provider |
 | `AI_BASE_URL` | no | `https://api.openai.com/v1` | Any OpenAI-compatible base URL |
-| `AI_MODEL` | no | `gpt-4o-mini` | Model id of your provider |
+| `AI_MODEL` | no | `gpt-4o-mini` | Model id; comma-separated fallback list supported |
 
 Provider examples:
 
@@ -59,7 +59,7 @@ AI_API_KEY=sk-...            AI_MODEL=gpt-4o-mini
 AI_API_KEY=gsk_...           AI_BASE_URL=https://api.groq.com/openai/v1       AI_MODEL=llama-3.3-70b-versatile
 
 # Google Gemini (free tier: https://aistudio.google.com/apikey)
-AI_API_KEY=AIza...           AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai  AI_MODEL=gemini-2.0-flash
+AI_API_KEY=AIza...           AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai  AI_MODEL=gemini-3.5-flash,gemini-3.6-flash
 ```
 
 **Fallback:** if `AI_API_KEY` is not configured or the provider is unreachable, the
