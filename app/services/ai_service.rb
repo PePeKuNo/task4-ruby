@@ -33,7 +33,7 @@ class AiService
 
   # NOTE: Networking timeouts - fail fast, the chat must stay responsive.
   OPEN_TIMEOUT = 8
-  READ_TIMEOUT = 40
+  READ_TIMEOUT = 60
 
   # IMPORTANT: The tools the AI can call. Each tool runs a REAL query against the users
   # table (see #run_tool below) - this is what makes the answers trustworthy.
@@ -99,24 +99,50 @@ class AiService
     new(question).ask
   end
 
+  # NOTE: Same as .ask but also returns a short human-readable debug trail
+  # (exposed by the controller as the X-AI-Debug response header - useful to see
+  # from the outside WHY an AI call failed, e.g. missing key vs HTTP error).
+  def self.ask_with_debug(question)
+    service = new(question)
+    answer = service.ask
+    [answer, service.debug]
+  end
+
+  attr_reader :debug
+
   def initialize(question)
     @question = question
+    @debug = []
+  end
+
+  # NOTE: Records one step of the AI call for the debug trail (max 6 entries).
+  def note(event)
+    @debug << event.to_s
+    @debug = @debug.last(6)
   end
 
   def ask
     # IMPORTANT: Without a key there is no AI call at all (see controller fallback).
-    return nil if ENV['AI_API_KEY'].blank?
+    if ENV['AI_API_KEY'].blank?
+      note('no-key')
+      return nil
+    end
 
     # IMPORTANT: AI_MODEL may contain a comma-separated FALLBACK LIST (e.g. free Gemini
     # tiers spike 503 "high demand" at peak hours) - we try each model in order.
     models.each do |model|
       answer = ask_model(model)
-      return answer if answer
+      if answer
+        note("answered:#{model}")
+        return answer
+      end
+      note("model-failed:#{model}")
     end
 
     nil
   rescue StandardError => e
     Rails.logger.warn("AiService failed: #{e.class}: #{e.message}")
+    note("error:#{e.class}")
     nil
   end
 
@@ -146,7 +172,10 @@ class AiService
       tool_calls = Array(message['tool_calls'])
 
       # NOTE: No tool calls => the model produced the final natural-language answer.
-      return message['content'].presence if tool_calls.empty?
+      if tool_calls.empty?
+        note("final:#{@model}")
+        return message['content'].presence
+      end
 
       # IMPORTANT: The model asked for data - execute every tool call as a REAL query
       # and feed the results back so it can formulate the insight.
@@ -169,18 +198,21 @@ class AiService
   def request(messages)
     response = post_chat(messages)
     if response && RETRY_STATUS.include?(response.code.to_s)
+      note("retry:#{response.code}")
       Rails.logger.warn("AI provider returned HTTP #{response.code}, retrying in #{RETRY_DELAY}s")
       sleep(RETRY_DELAY)
       response = post_chat(messages)
     end
 
     unless response&.is_a?(Net::HTTPSuccess)
+      note("http:#{response ? response.code : 'no-response'}")
       Rails.logger.warn("AI provider failed: HTTP #{response&.code}: #{response&.body.to_s[0, 300]}")
       return nil
     end
 
     JSON.parse(response.body)
   rescue StandardError => e
+    note("exc:#{e.class}")
     Rails.logger.warn("AI request failed: #{e.class}: #{e.message}")
     nil
   end
@@ -207,6 +239,7 @@ class AiService
 
     http.request(req)
   rescue StandardError => e
+    note("net:#{e.class}")
     Rails.logger.warn("AI request failed: #{e.class}: #{e.message}")
     nil
   end

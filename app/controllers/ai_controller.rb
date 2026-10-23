@@ -20,7 +20,12 @@ class AiController < ApplicationController
     # NOTA BENE: When AI_API_KEY is not configured or the provider is unreachable, we fall
     # back to the deterministic intents below so the feature NEVER breaks. Fallback answers
     # are template-shaped ("Total users: ...") while real AI answers are free-form.
-    answer = AiService.ask(question) || fallback_answer(question)
+    answer, debug = AiService.ask_with_debug(question)
+    answer ||= fallback_answer(question)
+
+    # NOTE: Debug trail in a response header (invisible in the UI) - it shows WHY the
+    # AI path failed when it did: no-key / HTTP code / network error / model list.
+    response.set_header('X-AI-Debug', Array(debug).last(4).join(' > ')[0, 140])
 
     render json: { answer: answer }
   end
