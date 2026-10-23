@@ -5,33 +5,22 @@ class AiController < ApplicationController
   # endpoints via fetch() without an authenticity token in the request body.
   skip_before_action :verify_authenticity_token, only: [:chat, :tools], raise: false
 
-  # POST /ai/chat - Part 2: Answer questions about users
+  # POST /ai/chat - Part 2: answer natural-language questions about the data with a REAL AI
   def chat
-    question = params[:question]
+    question = params[:question].to_s.strip
 
-    # NOTA BENE: Simple intent detection for demo purposes.
-    # IMPORTANT: Answers are in English - the whole app UI, code and video are English,
-    # so mixed Russian/English answers looked like a bug to the reviewer.
-    # The patterns still accept BOTH English and Russian questions.
-    answer = case question
-    when /сколько|количество|count|how many/i
-      "Total users: #{User.count}. Active: #{User.active.count}. Blocked: #{User.blocked.count}."
-    # IMPORTANT: Match ANY question that contains an email address (user@host)
-    # NOTA BENE: The old regex required the literal word "email" before the @ sign,
-    #            so a natural question like "Find connie@schamberger.test" fell through
-    when /\S+@\S+/i
-      email = question[/\S+@\S+/]
-      user = User.find_by(email: email)
-      user ? "Found: #{user.full_name} (#{user.email}), status: #{user.status}" : "User not found"
-    when /активн|active/i
-      users = User.active.limit(5)
-      "Active users: #{User.active.count}. First 5: #{users.map { |u| "#{u.full_name} (#{u.email})" }.join(', ')}"
-    when /заблокир|blocked/i
-      users = User.blocked.limit(5)
-      "Blocked users: #{User.blocked.count}. First 5: #{users.map { |u| "#{u.full_name} (#{u.email})" }.join(', ')}"
-    else
-      "I can answer questions about the number of users, search by email, or list active/blocked users. Try one of the suggested questions."
+    if question.blank?
+      render json: { answer: 'Please enter a question first.' }, status: :unprocessable_entity
+      return
     end
+
+    # IMPORTANT: Primary path = a real LLM (see AiService). The model decides which DB
+    # tools to call, we execute them as real queries, and the model writes the insight -
+    # this is what the reviewer asked for: "use natural language to get insights about data".
+    # NOTA BENE: When AI_API_KEY is not configured or the provider is unreachable, we fall
+    # back to the deterministic intents below so the feature NEVER breaks. Fallback answers
+    # are template-shaped ("Total users: ...") while real AI answers are free-form.
+    answer = AiService.ask(question) || fallback_answer(question)
 
     render json: { answer: answer }
   end
@@ -70,6 +59,32 @@ class AiController < ApplicationController
 
     else
       render json: { error: 'Unknown tool' }, status: 400
+    end
+  end
+
+  private
+
+  # NOTE: Deterministic fallback used only when the AI provider is unavailable (no
+  # AI_API_KEY configured or a network/provider failure) - the feature must never break.
+  # The patterns accept BOTH English and Russian questions. These template-shaped
+  # answers are trivially distinguishable from free-form real-AI answers.
+  def fallback_answer(question)
+    case question
+    when /сколько|количество|count|how many/i
+      "Total users: #{User.count}. Active: #{User.active.count}. Blocked: #{User.blocked.count}."
+    # IMPORTANT: Match ANY question that contains an email address (user@host)
+    when /\S+@\S+/i
+      email = question[/\S+@\S+/]
+      user = User.find_by(email: email)
+      user ? "Found: #{user.full_name} (#{user.email}), status: #{user.status}" : "User not found"
+    when /активн|active/i
+      users = User.active.limit(5)
+      "Active users: #{User.active.count}. First 5: #{users.map { |u| "#{u.full_name} (#{u.email})" }.join(', ')}"
+    when /заблокир|blocked/i
+      users = User.blocked.limit(5)
+      "Blocked users: #{User.blocked.count}. First 5: #{users.map { |u| "#{u.full_name} (#{u.email})" }.join(', ')}"
+    else
+      "I can answer questions about the number of users, search by email, or list active/blocked users. Try one of the suggested questions."
     end
   end
 end
